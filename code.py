@@ -1,4 +1,5 @@
-import re 
+import re
+import numpy as np
 import tweepy 
 from tweepy import OAuthHandler 
 from textblob import TextBlob 
@@ -12,10 +13,10 @@ class TwitterClient(object):
 		Class constructor or initialization method. 
 		'''
 		# keys and tokens from the Twitter Dev Console 
-		consumer_key = 'XXXXXXXXXXXXXXXXXXXXXXXX'
-		consumer_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-		access_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-		access_token_secret = 'XXXXXXXXXXXXXXXXXXXXXXXXX'
+		consumer_key = '9RkYhudUQkKKHEuCwnU1WmKGt'
+		consumer_secret ='bkRl7MNNSzi2Hvg1bJUb3weakYw9Rlf9v35thqPLQ3YcViWCjA'
+		access_token = '357276346-oIxMqGkzb82Vz7uE6cEKCX5l8HUKNwPmTVKAADNR'
+		access_token_secret = 'fsph2QGPKvL8dDRRu97IgICqCdGNnf44cIkTXS2ctaaH2'
 
 		# attempt authentication 
 		try: 
@@ -33,10 +34,9 @@ class TwitterClient(object):
 		Utility function to clean tweet text by removing links, special characters 
 		using simple regex statements. 
 		'''
-		return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t]) 
-									|(\w+:\/\/\S+)", " ", tweet).split()) 
+		return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
-	def get_tweet_sentiment(self, tweet): 
+        def get_tweet_sentiment(self, tweet): 
 		''' 
 		Utility function to classify sentiment of passed tweet 
 		using textblob's sentiment method 
@@ -73,11 +73,11 @@ class TwitterClient(object):
 				parsed_tweet['sentiment'] = self.get_tweet_sentiment(tweet.text) 
 
 				# appending parsed tweet to tweets list 
-				if tweet.retweet_count > 0: 
+				if tweet.retweet_count == 0: 
 					# if tweet has retweets, ensure that it is appended only once 
-					if parsed_tweet not in tweets: 
-						tweets.append(parsed_tweet) 
-				else: 
+				#	if parsed_tweet not in tweets: 
+				#		tweets.append(parsed_tweet) 
+				#else: 
 					tweets.append(parsed_tweet) 
 
 			# return parsed tweets 
@@ -102,8 +102,7 @@ def main():
 	# percentage of negative tweets 
 	print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets))) 
 	# percentage of neutral tweets 
-	print("Neutral tweets percentage: {} % \ 
-		".format(100*len(tweets - ntweets - ptweets)/len(tweets))) 
+        print("Neutral tweets percentage: {} %".format(100*(len(tweets)-len(ntweets)-len(ptweets))/len(tweets))) 
 
 	# printing first 5 positive tweets 
 	print("\n\nPositive tweets:") 
