@@ -87,10 +87,58 @@ class TwitterClient(object):
 			# print error (if any) 
 			print("Error : " + str(e)) 
 
+        def get_user_tweets(self, username, count):
+                #Twitter only allows access to a user's most recent 3240 tweets
+
+                alltweets=[]
+
+                number_of_tweets = count
+                
+                #make initial requests
+                new_tweets = self.api.user_timeline(screen_name = username,count = number_of_tweets)
+                print("total new: ")
+                print(len(new_tweets))
+
+                oldest = new_tweets[len(new_tweets)-1].id - 1
+                print("yes")
+
+                for tweet in new_tweets:
+                    alltweets.append(tweet.text.encode("utf-8"))
+
+                while len(new_tweets) > 0:
+                    print("getting tweets before %s", oldest)
+
+                    new_tweets = self.api.user_timeline(screen_name = username, count = number_of_tweets, max_id = oldest)
+                   
+                    if len(new_tweets) == 0:
+                        break
+
+                    for tweet in new_tweets:
+                        alltweets.append((tweet.text).encode("utf-8"))
+
+                    oldest = new_tweets[len(new_tweets)-1].id - 1
+
+                    print("...%s tweets downloaded so far", len(alltweets))
+                
+                print("Total fetched from user %s", username)
+                print(len(alltweets))
+                print(alltweets[0])
+                
+                f = open("results","wb")
+                f.writelines(alltweets)
+                f.close()
+
+                #for i in alltweets:
+                #   print(i)
+
+
 def main(): 
 	# creating object of TwitterClient Class 
 	api = TwitterClient() 
-	# calling function to get tweets 
+	
+        api.get_user_tweets("realdonaldtrump", 200)
+
+        # calling function to get tweets 
 	tweets = api.get_tweets(query = 'Donald Trump', count = 200) 
 
 	# picking positive tweets from tweets 
@@ -112,7 +160,12 @@ def main():
 	# printing first 5 negative tweets 
 	print("\n\nNegative tweets:") 
 	for tweet in ntweets[:10]: 
-		print(tweet['text']) 
+		print(tweet['text'])
+
+
+
+        #print("\n\n\n\n")
+        #api.get_user_tweets("realdonaldtrump", 200)
 
 if __name__ == "__main__": 
 	# calling main function 
