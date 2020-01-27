@@ -103,7 +103,7 @@ class TwitterClient(object):
                 print("yes")
 
                 for tweet in new_tweets:
-                    alltweets.append(tweet.text.encode("utf-8"))
+                    alltweets.append(self.clean_tweet(tweet.text.encode("utf-8")))
 
                 while len(new_tweets) > 0:
                     print("getting tweets before %s", oldest)
@@ -114,7 +114,7 @@ class TwitterClient(object):
                         break
 
                     for tweet in new_tweets:
-                        alltweets.append((tweet.text).encode("utf-8"))
+                        alltweets.append(self.clean_tweet((tweet.text).encode("utf-8")))
 
                     oldest = new_tweets[len(new_tweets)-1].id - 1
 
