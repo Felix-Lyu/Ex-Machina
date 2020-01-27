@@ -95,7 +95,7 @@ class TwitterClient(object):
                 number_of_tweets = count
                 
                 #make initial requests
-                new_tweets = self.api.user_timeline(screen_name = username,count = number_of_tweets)
+                new_tweets = self.api.user_timeline(screen_name = username,count = 1)
                 print("total new: ")
                 print(len(new_tweets))
 
@@ -105,10 +105,10 @@ class TwitterClient(object):
                 for tweet in new_tweets:
                     alltweets.append(tweet.text.encode("utf-8"))
 
-                while len(new_tweets) > 0:
+                for i in range (0, number_of_tweets):
                     print("getting tweets before %s", oldest)
 
-                    new_tweets = self.api.user_timeline(screen_name = username, count = number_of_tweets, max_id = oldest)
+                    new_tweets = self.api.user_timeline(screen_name = username, max_id = oldest)
                    
                     if len(new_tweets) == 0:
                         break
