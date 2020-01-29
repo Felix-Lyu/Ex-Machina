@@ -93,7 +93,7 @@ class TwitterClient(object):
                 alltweets=[]
                 
                 #make initial requests
-                new_tweets = self.api.user_timeline(screen_name = username,count = number_of_tweets, includ_rts = True)
+                new_tweets = self.api.user_timeline(screen_name = username,count = number_of_tweets, includ_rts = False)
                 print("total new: ")
                 print(len(new_tweets))
 
