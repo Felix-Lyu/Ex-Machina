@@ -87,13 +87,13 @@ class TwitterClient(object):
 			# print error (if any) 
 			print("Error : " + str(e)) 
 
-        def get_user_tweets(self, username, number_of_tweets):
+        def get_user_tweets(self, username, number_of_tweets = 200):
                 #Twitter only allows access to a user's most recent 3240 tweets
 
                 alltweets=[]
                 
                 #make initial requests
-                new_tweets = self.api.user_timeline(screen_name = username,count = 1)
+                new_tweets = self.api.user_timeline(screen_name = username,count = number_of_tweets, includ_rts = True)
                 print("total new: ")
                 print(len(new_tweets))
 
@@ -103,38 +103,35 @@ class TwitterClient(object):
                 for tweet in new_tweets:
                     alltweets.append(tweet.text.encode("utf-8"))
 
-                for i in range (0, number_of_tweets):
-                    print("getting tweets before %s", oldest)
+                #for i in range (0, number_of_tweets):
+                #    print("getting tweets before %s", oldest)
 
-                    new_tweets = self.api.user_timeline(screen_name = username,count = 1, max_id = oldest)
+                #    new_tweets = self.api.user_timeline(screen_name = username,count = 1, max_id = oldest)
                    
-                    if len(new_tweets) == 0:
-                        break
+                #    if len(new_tweets) == 0:
+                #        break
 
-                    for tweet in new_tweets:
-                        alltweets.append((tweet.text).encode("utf-8"))
+                #    for tweet in new_tweets:
+                #        alltweets.append((tweet.text).encode("utf-8"))
 
-                    oldest = new_tweets[len(new_tweets)-1].id - 1
+                #    oldest = new_tweets[len(new_tweets)-1].id - 1
 
-                    print("...%s tweets downloaded so far", len(alltweets))
+                #    print("...%s tweets downloaded so far", len(alltweets))
                 
                 print("Total fetched from user %s", username)
                 print(len(alltweets))
-                print(alltweets[0])
+                #print(alltweets[0])
                 
                 f = open("results","wb")
                 f.writelines(alltweets)
                 f.close()
-
-                #for i in alltweets:
-                #   print(i)
 
 
 def main(): 
 	# creating object of TwitterClient Class 
 	api = TwitterClient() 
 	
-        api.get_user_tweets("realdonaldtrump", 200)
+        api.get_user_tweets("realDonaldTrump", 200)
 
         # calling function to get tweets 
 	tweets = api.get_tweets(query = 'Donald Trump', count = 200) 
