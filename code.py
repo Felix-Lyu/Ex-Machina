@@ -87,12 +87,10 @@ class TwitterClient(object):
 			# print error (if any) 
 			print("Error : " + str(e)) 
 
-        def get_user_tweets(self, username, count):
+        def get_user_tweets(self, username, number_of_tweets):
                 #Twitter only allows access to a user's most recent 3240 tweets
 
                 alltweets=[]
-
-                number_of_tweets = count
                 
                 #make initial requests
                 new_tweets = self.api.user_timeline(screen_name = username,count = 1)
@@ -108,7 +106,7 @@ class TwitterClient(object):
                 for i in range (0, number_of_tweets):
                     print("getting tweets before %s", oldest)
 
-                    new_tweets = self.api.user_timeline(screen_name = username, max_id = oldest)
+                    new_tweets = self.api.user_timeline(screen_name = username,count = 1, max_id = oldest)
                    
                     if len(new_tweets) == 0:
                         break
