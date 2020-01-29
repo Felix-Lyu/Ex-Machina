@@ -123,7 +123,10 @@ class TwitterClient(object):
                 #print(alltweets[0])
                 
                 f = open("results","wb")
-                f.writelines(alltweets)
+                for i in range (0,len(alltweets)):
+                    f.write(alltweets[i])
+                    f.write('\n')
+                #f.writelines(alltweets)
                 f.close()
 
 
