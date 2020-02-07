@@ -5,7 +5,7 @@ import csv
 from tweepy import OAuthHandler
 from textblob import TextBlob
 import pandas as pd
-
+import time
 
 class TwitterClient(object):
     '''
@@ -135,9 +135,8 @@ class TwitterClient(object):
             user_array.append(parsed_tweet)
 
         # writing everything into a csv file
-        with open('DonaldTrump.csv', 'w', newline='') as file:
+        with open('AllTweets.csv', 'a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["Text", "Sentiment", "User"])
             for obj in user_array:
                 writer.writerow([obj['text'], obj['sentiment'], obj['user']])
 
@@ -152,16 +151,23 @@ class TwitterClient(object):
 
 
 def main():
+    start_time = time.time()
+
     # creating object of TwitterClient Class
     api = TwitterClient()
 
-    temp = api.get_user_tweets("realDonaldTrump")
+    # create a file to hold all desired info
+    with open('AllTweets.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Text", "Sentiment", "User"])
 
     # read in twitter account names from Republican.xlsx（or Democrats.xlsx）
-    df = pd.read_excel(r'Republican.xlsx')
+    df = pd.read_excel('Republican.xlsx')
     for row in range(df.size):
         username = df['name'][row][1:]
         api.get_user_tweets(username)
+
+    print("--- %s seconds ---" % (time.time() - start_time))
 
     # calling function to get tweets
     # tweets = api.get_tweets(query='Donald Trump')
