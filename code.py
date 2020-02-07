@@ -1,20 +1,24 @@
 import re
 import numpy as np
-import tweepy 
-from tweepy import OAuthHandler 
-from textblob import TextBlob 
+import tweepy
+import csv
+from tweepy import OAuthHandler
+from textblob import TextBlob
+import pandas as pd
 
-class TwitterClient(object): 
+
+class TwitterClient(object):
     '''
     Generic Twitter Class for sentiment analysis.
     '''
+
     def __init__(self):
         '''
         Class constructor or initialization method.
         '''
         # keys and tokens from the Twitter Dev Console
         consumer_key = '9RkYhudUQkKKHEuCwnU1WmKGt'
-        consumer_secret ='bkRl7MNNSzi2Hvg1bJUb3weakYw9Rlf9v35thqPLQ3YcViWCjA'
+        consumer_secret = 'bkRl7MNNSzi2Hvg1bJUb3weakYw9Rlf9v35thqPLQ3YcViWCjA'
         access_token = '357276346-oIxMqGkzb82Vz7uE6cEKCX5l8HUKNwPmTVKAADNR'
         access_token_secret = 'fsph2QGPKvL8dDRRu97IgICqCdGNnf44cIkTXS2ctaaH2'
 
@@ -51,7 +55,7 @@ class TwitterClient(object):
         else:
             return 'negative'
 
-    def get_tweets(self, query, count = 10):
+    def get_tweets(self, query, count=10):
         '''
         Main function to fetch tweets and parse them.
         '''
@@ -60,7 +64,7 @@ class TwitterClient(object):
 
         try:
             # call twitter api to fetch tweets
-            fetched_tweets = self.api.search(q = query, count = count)
+            fetched_tweets = self.api.search(q=query, count=count)
 
             # parsing tweets one by one
             for tweet in fetched_tweets:
@@ -75,9 +79,9 @@ class TwitterClient(object):
                 # appending parsed tweet to tweets list
                 if tweet.retweet_count == 0:
                     # if tweet has retweets, ensure that it is appended only once
-                #	if parsed_tweet not in tweets:
-                #		tweets.append(parsed_tweet)
-                #else:
+                    #   if parsed_tweet not in tweets:
+                    #       tweets.append(parsed_tweet)
+                    # else:
                     tweets.append(parsed_tweet)
 
             # return parsed tweets
@@ -87,57 +91,80 @@ class TwitterClient(object):
             # print error (if any)
             print("Error : " + str(e))
 
-
+    # Twitter only allows access to a user's most recent 3240 tweets
     def get_user_tweets(self, username):
-        # Twitter only allows access to a user's most recent 3240 tweets
-
+        # list that stores all the tweet texts of this user
         alltweets = []
 
         # make initial requests
-        new_tweets = self.api.user_timeline(screen_name=username, count=200, includ_rts=False)
-        print("total new: ")
-        print(len(new_tweets))
+        new_tweets = self.api.user_timeline(screen_name=username, count=200)
+        print("Initial call: %s fetched" % (len(new_tweets)))
 
+        # the id to start searching next time
         oldest = new_tweets[len(new_tweets) - 1].id - 1
-        print("yes")
 
+        # append all the new tweet texts into alltweets
         for tweet in new_tweets:
-            alltweets.append(tweet.text.encode("utf-8"))
+            alltweets.append(tweet.text)
 
+        # repeat the process until no more tweets can be fetched
         while (len(new_tweets) > 0):
-           print("getting tweets before %s", oldest)
+            print("getting tweets before %s" % oldest)
 
-           new_tweets = self.api.user_timeline(screen_name = username,count = 200, max_id = oldest)
+            new_tweets = self.api.user_timeline(screen_name=username, count=200, max_id=oldest)
 
-           if len(new_tweets) == 0:
-               break
+            if len(new_tweets) == 0:
+                break
 
-           for tweet in new_tweets:
-               alltweets.append((tweet.text).encode("utf-8"))
+            for tweet in new_tweets:
+                alltweets.append((tweet.text))
 
-           oldest = new_tweets[len(new_tweets)-1].id - 1
+            # update the oldest id
+            oldest = new_tweets[len(new_tweets) - 1].id - 1
 
-           print("...%s tweets downloaded so far", len(alltweets))
+            print("...%s tweets downloaded so far" % len(alltweets))
 
-        print("Total fetched from user %s", username)
-        print(len(alltweets))
-        # print(alltweets[0])
+        print("Total fetched from user %s: %s" % (username, len(alltweets)))
 
-        f = open("results", "wb")
+        user_array = []
+
         for i in range(0, len(alltweets)):
-            f.write(alltweets[i])
-            # f.write('\n')
-        # f.writelines(alltweets)
-        f.close()
+            # our dictionary object for each tweet that holds all the necessary info
+            parsed_tweet = {'text': alltweets[i], 'sentiment': 0, 'user': username}
 
-def main(): 
+            user_array.append(parsed_tweet)
+
+        # writing everything into a csv file
+        with open('DonaldTrump.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Text", "Sentiment", "User"])
+            for obj in user_array:
+                writer.writerow([obj['text'], obj['sentiment'], obj['user']])
+
+        return user_array
+
+        # f = open("results", "wb")
+        # for i in range(0, len(alltweets)):
+        #     f.write(alltweets[i])
+        #     # f.write('\n')
+        # # f.writelines(alltweets)
+        # f.close()
+
+
+def main():
     # creating object of TwitterClient Class
     api = TwitterClient()
 
-    api.get_user_tweets("realDonaldTrump", 200)
+    temp = api.get_user_tweets("realDonaldTrump")
+
+    # read in twitter account names from Republican.xlsx（or Democrats.xlsx）
+    df = pd.read_excel(r'Republican.xlsx')
+    for row in range(df.size):
+        username = df['name'][row][1:]
+        api.get_user_tweets(username)
 
     # calling function to get tweets
-    tweets = api.get_tweets(query = 'Donald Trump')
+    # tweets = api.get_tweets(query='Donald Trump')
 
     # # picking positive tweets from tweets
     # ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive']
@@ -149,17 +176,18 @@ def main():
     # print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets)))
     # # percentage of neutral tweets
     # print("Neutral tweets percentage: {} %".format(100*(len(tweets)-len(ntweets)-len(ptweets))/len(tweets)))
-	#
+    #
     # # printing first 5 positive tweets
     # print("\n\nPositive tweets:")
     # for tweet in ptweets[:10]:
     #     print(tweet['text'])
-	#
+    #
     # # printing first 5 negative tweets
     # print("\n\nNegative tweets:")
     # for tweet in ntweets[:10]:
     #     print(tweet['text'])
 
-if __name__ == "__main__": 
+
+if __name__ == "__main__":
     # calling main function
     main()
