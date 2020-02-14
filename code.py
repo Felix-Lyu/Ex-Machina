@@ -38,7 +38,7 @@ class TwitterClient(object):
         Utility function to clean tweet text by removing links, special characters
         using simple regex statements.
         '''
-        return ' '.join(re.sub("(@[A-Za-z0-9]+)|([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
+        return ' '.join(re.sub("([^0-9A-Za-z \t])|(\w+:\/\/\S+)", " ", tweet).split())
 
     def get_tweet_sentiment(self, tweet):
         '''
@@ -97,7 +97,7 @@ class TwitterClient(object):
         alltweets = []
 
         # make initial requests
-        new_tweets = self.api.user_timeline(screen_name=username, count=200)
+        new_tweets = self.api.user_timeline(screen_name=username, count=200, tweet_mode='extended')
         print("Initial call: %s fetched" % (len(new_tweets)))
 
         # the id to start searching next time
@@ -105,19 +105,22 @@ class TwitterClient(object):
 
         # append all the new tweet texts into alltweets
         for tweet in new_tweets:
-            alltweets.append(tweet.text)
+            alltweets.append(tweet.full_text)
 
+        # print(new_tweets[0])
+        # print(new_tweets[0].full_text)
+        # print(self.clean_tweet(new_tweets[0].full_text))
         # repeat the process until no more tweets can be fetched
         while (len(new_tweets) > 0):
             print("getting tweets before %s" % oldest)
 
-            new_tweets = self.api.user_timeline(screen_name=username, count=200, max_id=oldest)
+            new_tweets = self.api.user_timeline(screen_name=username, count=200, max_id=oldest, tweet_mode='extended')
 
             if len(new_tweets) == 0:
                 break
 
             for tweet in new_tweets:
-                alltweets.append((tweet.text))
+                alltweets.append(tweet.full_text)
 
             # update the oldest id
             oldest = new_tweets[len(new_tweets) - 1].id - 1
@@ -130,7 +133,7 @@ class TwitterClient(object):
 
         for i in range(0, len(alltweets)):
             # our dictionary object for each tweet that holds all the necessary info
-            parsed_tweet = {'text': alltweets[i], 'sentiment': 0, 'user': username}
+            parsed_tweet = {'text': alltweets[i], 'cleaned': self.clean_tweet(alltweets[i]), 'sentiment': 0, 'user': username}
 
             user_array.append(parsed_tweet)
 
@@ -138,7 +141,7 @@ class TwitterClient(object):
         with open('AllTweets.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             for obj in user_array:
-                writer.writerow([obj['text'], obj['sentiment'], obj['user']])
+                writer.writerow([obj['text'], obj['cleaned'], obj['sentiment'], obj['user']])
 
         return user_array
 
@@ -159,7 +162,7 @@ def main():
     # create a file to hold all desired info
     with open('AllTweets.csv', 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Text", "Sentiment", "User"])
+        writer.writerow(["Text", "Cleaned Text", "Sentiment", "User"])
 
     # read in twitter account names from Republican.xlsx（or Democrats.xlsx）
     df = pd.read_excel('Republican.xlsx')
