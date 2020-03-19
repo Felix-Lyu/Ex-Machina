@@ -133,7 +133,11 @@ class TwitterClient(object):
 
         for i in range(0, len(alltweets)):
             # our dictionary object for each tweet that holds all the necessary info
-            parsed_tweet = {'text': alltweets[i], 'cleaned': self.clean_tweet(alltweets[i]), 'sentiment': 0, 'user': username}
+            parsed_tweet = {'text': alltweets[i],
+                            'cleaned': self.clean_tweet(alltweets[i]),
+                            'sentiment': 0,  #FIXME: currently a place holder
+                            'user': username,
+                            'mentioned': self.any_mention(alltweets[i], "Democrat.xlsx")}
 
             user_array.append(parsed_tweet)
 
@@ -141,7 +145,7 @@ class TwitterClient(object):
         with open('AllTweets.csv', 'a', newline='') as file:
             writer = csv.writer(file)
             for obj in user_array:
-                writer.writerow([obj['text'], obj['cleaned'], obj['sentiment'], obj['user']])
+                writer.writerow([obj['text'], obj['cleaned'], obj['sentiment'], obj['user'],obj['mentioned']])
 
         return user_array
 
@@ -152,12 +156,26 @@ class TwitterClient(object):
         # # f.writelines(alltweets)
         # f.close()
 
+    def any_mention(self, text, target_file):
+        found = ''
+        df = pd.read_excel(target_file)
+        for row in range(df.size):
+            cur_target = df['name'][row][1:]
+            if cur_target in text:
+                if len(found) > 0:
+                    found += ' '
+                found += cur_target
+
+        return found
+
 
 def main():
     start_time = time.time()
 
     # creating object of TwitterClient Class
     api = TwitterClient()
+
+    # api.any_mention('I hate @SenDougJones!!! Guys like @SenBrianSchatz should be sacked..', 'Democrat.xlsx')
 
     # create a file to hold all desired info
     with open('AllTweets.csv', 'w', newline='') as file:
@@ -169,6 +187,8 @@ def main():
     for row in range(df.size):
         username = df['name'][row][1:]
         api.get_user_tweets(username)
+
+
 
     print("--- %s seconds ---" % (time.time() - start_time))
 
